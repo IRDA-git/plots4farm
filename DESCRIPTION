@@ -1,0 +1,14 @@
+Package: plots4farm
+Title: Fonctions spatiales pour découpe de parcelles et tri de photos
+Version: 0.1.0
+Authors@R: person("Zachary","Bélisle", email="zachary.belisle@irda.qc.ca", role=c("aut","cre"))
+Description: Crée des grilles alignées sur des polygones, découpe des parcelles numérotées et classe des photos selon leur géolocalisation.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports:
+  sf,
+  dplyr,
+  stringr,
+  exifr
+RoxygenNote: 7.3.2
