@@ -1,7 +1,3 @@
-require(tidyverse)
-require(sf)
-require(exifr)
-
 #' Associe des photos à des parcelles et numéros de champ, et les classe en dossiers
 #'
 #' Lit un shapefile de champs et un shapefile de parcelles, ainsi qu'un dossier de photos,
@@ -9,16 +5,16 @@ require(exifr)
 #' joint spatialement avec les champs (NoChamp), puis avec les parcelles (Name),
 #' et copie chaque fichier photo dans un dossier organisé par NoChamp/Name.
 #'
-#' @param parcelles Chemin vers le fichier vectoriel des parcelles contenant la colonne `Name`.
+#' @param parcelles  Chemin vers le fichier vectoriel des parcelles contenant la colonne `Name`.
 #' @param photos     Chemin vers le dossier contenant les fichiers image.
 #' @param field_path Chemin vers le fichier vectoriel des champs contenant la colonne `NoChamp`.
 #' @param proj       EPSG ou CRS cible pour la projection (par défaut 4326).
 #' @param output_dir Chemin vers le dossier racine où classer les photos (créera sous-dossiers).
 #' @return Un objet sf POINT avec les colonnes :
-#'   - `Photo`   : chemin original du fichier image  
-#'   - `NoChamp` : numéro du champ (ou NA)  
-#'   - `Name`    : nom de la parcelle intersectée (ou NA)  
-#'   - `geometry`: coordonnées projetées  
+#'   - `Photo`   : chemin original du fichier image
+#'   - `NoChamp` : numéro du champ (ou NA)
+#'   - `Name`    : nom de la parcelle intersectée (ou NA)
+#'   - `geometry`: coordonnées projetées
 #' @examples
 #' \dontrun{
 #' result <- img_per_plots(
@@ -38,12 +34,12 @@ img_per_plots <- function(parcelles, photos, field_path, proj = 4326, output_dir
   field_sf <- sf::read_sf(field_path) %>%
     sf::st_transform(proj) %>%
     sf::st_zm()
-  
+
   # 2. Charger et projeter les parcelles
   shape_sf <- sf::read_sf(parcelles) %>%
     sf::st_transform(proj) %>%
     sf::st_zm()
-  
+
   # 3. Extraire en bloc les métadonnées EXIF des images
   exif_df <- exifr::read_exif(photos, tags = c("SourceFile","GPSLatitude","GPSLongitude"), recursive = TRUE) %>%
     dplyr::filter(!is.na(GPSLatitude) & !is.na(GPSLongitude)) %>%
@@ -52,7 +48,7 @@ img_per_plots <- function(parcelles, photos, field_path, proj = 4326, output_dir
       Latitude  = GPSLatitude,
       Longitude = GPSLongitude
     )
-  
+
   # 4. Transformer en sf POINT et projeter
   img_sf <- sf::st_as_sf(
     exif_df,
@@ -61,21 +57,21 @@ img_per_plots <- function(parcelles, photos, field_path, proj = 4326, output_dir
   ) %>%
     sf::st_transform(proj) %>%
     sf::st_zm()
-  
+
   # 5. Jointure spatiale avec les champs pour récupérer NoChamp
   img_sf <- sf::st_join(
     img_sf,
     field_sf[, "NoChamp", drop = FALSE],
     join = sf::st_intersects
   )
-  
+
   # 6. Jointure spatiale avec les parcelles pour récupérer Name
   img_sf <- sf::st_join(
     img_sf,
     shape_sf[, "Name", drop = FALSE],
     join = sf::st_intersects
   )
-  
+
   # 7. Créer et organiser les dossiers, copier les photos
   if (missing(output_dir) || !nzchar(output_dir)) {
     stop("`output_dir` doit être spécifié et non vide.", call. = FALSE)
@@ -109,7 +105,7 @@ img_per_plots <- function(parcelles, photos, field_path, proj = 4326, output_dir
       warning(sprintf("Échec de la copie de '%s' vers '%s'.", img_sf$Photo[i], dest_dir), call. = FALSE)
     }
   }
-  
+
   return(img_sf)
 }
 
