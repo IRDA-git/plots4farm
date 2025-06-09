@@ -41,7 +41,7 @@ img_per_plots <- function(parcelles, photos, field_path, proj = 4326, output_dir
     sf::st_zm()
 
   # 3. Extraire en bloc les métadonnées EXIF des images
-  exif_df <- exifr::read_exif(photos, tags = c("SourceFile","GPSLatitude","GPSLongitude"), recursive = TRUE) %>%
+  exif_df <- exifr::read_exif(photos, tags = c("SourceFile","GPSLatitude","GPSLongitude")) %>%
     dplyr::filter(!is.na(GPSLatitude) & !is.na(GPSLongitude)) %>%
     dplyr::select(
       Photo     = SourceFile,
